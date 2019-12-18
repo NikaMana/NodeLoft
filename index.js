@@ -43,7 +43,7 @@ const sortFiles = (src) => {
 
     for (let index = 0; index < files.length; index++) {
       const currentUrl = path.join(src, files[index]);
-      const state = fs.statSync(currentUrl);
+      const state = fs.stat(currentUrl);
 
       if (state.isDirectory()) {
         sortFiles(currentUrl);
