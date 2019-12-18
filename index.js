@@ -1,7 +1,6 @@
 const yargs = require('yargs');
 const path = require('path');
 const fs = require('fs');
-const paths = { sourse: null, dist: null };
 
 const argv = yargs
   .usage('Usage: $0 [option]')
@@ -31,12 +30,6 @@ console.log(argv)
 
 paths.sourse = path.normalize(path.join(__dirname, argv.entry));
 paths.dist = path.normalize(path.join(__dirname, argv.output));
-
-const createDir = path => {
-  if (!fs.existsSync(path)) {
-    fs.mkdirSync(path);
-  }
-}
 
 const sortFiles = (src) => {
   fs.readdir(src, (error, files) => {
