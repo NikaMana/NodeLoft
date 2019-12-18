@@ -80,7 +80,6 @@ process.on('exit', code => {
     case 404:
       console.error('Directory is clear');
       break;
-  }
-  
+  }  
 });
  
