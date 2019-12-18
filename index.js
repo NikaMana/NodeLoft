@@ -1,9 +1,7 @@
 const yargs = require('yargs');
 const path = require('path');
 const fs = require('fs');
-const del = require('del');
-const paths = { sourse: null, dist: null }
-
+const paths = { sourse: null, dist: null };
 
 const argv = yargs
   .usage('Usage: $0 [option]')
@@ -28,8 +26,7 @@ const argv = yargs
     default: false
   })
   .epilog('my first homework node.js')
-  .argv
-​
+  .argv;
 console.log(argv)
 
 paths.sourse = path.normalize(path.join(__dirname, argv.entry));
