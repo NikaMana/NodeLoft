@@ -81,5 +81,6 @@ process.on('exit', code => {
       console.error('Directory is clear');
       break;
   }
+  
 });
  
