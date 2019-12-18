@@ -62,12 +62,12 @@ const sortFiles = (src) => {
 
         createDir(paths.dist);
         createDir(pathNewDir);
-        fs.copyFileSync(currentUrl, path.join(pathNewDir, files[index]));
+        fs.copyFile(currentUrl, path.join(pathNewDir, files[index]));
         console.info(path.parse(path.join(pathNewDir, files[index])));
         console.log(' ');
       }
     }
-  }
+  });
 }
 
 sortFiles(path.sourse);
