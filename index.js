@@ -1,6 +1,7 @@
 const yargs = require('yargs');
 const path = require('path');
 const fs = require('fs');
+const paths = { sourse:null, dist: null };
 
 const argv = yargs
   .usage('Usage: $0 [option]')
@@ -61,6 +62,8 @@ const sortFiles = (src) => {
 }
 
 sortFiles(path.sourse);
+
+readDir(argv.entry, argv.output);
 
 process.on('exit', code => {
   switch (code) {
