@@ -32,6 +32,14 @@ console.log(argv)
 paths.sourse = path.normalize(path.join(__dirname, argv.entry));
 paths.dist = path.normalize(path.join(__dirname, argv.output));
 
+function createDir(path, callback) {
+  fs.exists(path, () => {
+    fs.mkdir(path, () => {
+      callback();
+    });
+  });
+}
+
 const sortFiles = (src) => {
   fs.readdir(src, (error, files) => {
     if (error) {
@@ -44,26 +52,33 @@ const sortFiles = (src) => {
 
     for (let index = 0; index < files.length; index++) {
       const currentUrl = path.join(src, files[index]);
-      const state = fs.stat(currentUrl);
+      fs.stat(currentUrl, (error, state) => {
+        if (error) throw error;
 
-      if (state.isDirectory()) {
-        sortFiles(currentUrl);
-      } else {
-        const pathNewDir = path.join(path.dist, path.parse(files[index]).name.charAt(0).toUpperCase());
-
-        createDir(paths.dist);
-        createDir(pathNewDir);
-        fs.copyFile(currentUrl, path.join(pathNewDir, files[index]));
-        console.info(path.parse(path.join(pathNewDir, files[index])));
-        console.log(' ');
-      }
+        if (state.isDirectory()) {
+          sortFiles(currentUrl);
+        } else {
+          const pathNewDir = path.join(paths.dist, path.parse(files[index]).name.charAt(0).toUpperCase());
+  
+          createDir(paths.dist, () => {
+            createDir(pathNewDir, () => {
+              fs.copyFile(currentUrl, path.join(pathNewDir, files[index]), (error) => {
+                if (error) throw error;
+              });
+            });
+          });          
+          // console.info(path.parse(path.join(pathNewDir, files[index])));
+          // console.log(' ');
+        }
+      });
+        fs.stat(src, (error) => {
+          if (error) throw error;
+        });
     }
   });
 }
 
-sortFiles(path.sourse);
-
-readDir(argv.entry, argv.output);
+sortFiles(paths.sourse);
 
 process.on('exit', code => {
   switch (code) {
