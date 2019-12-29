@@ -1,7 +1,8 @@
 const yargs = require('yargs');
 const path = require('path');
 const fs = require('fs');
-const paths = { sourse:null, dist: null };
+const paths = { sourse: null, dist: null };
+const Observ = require('./libs/observer');
 
 const argv = yargs
   .usage('Usage: $0 [option]')
@@ -27,10 +28,20 @@ const argv = yargs
   })
   .epilog('my first homework node.js')
   .argv;
-console.log(argv)
+
+console.log(argv.entry, argv.output);
 
 paths.sourse = path.normalize(path.join(__dirname, argv.entry));
 paths.dist = path.normalize(path.join(__dirname, argv.output));
+const isDelete = argv.delete;
+
+const pathNewDir = path.join(paths.dist, path.parse(files[index]).name.charAt(0).toUpperCase());
+
+const observer = new Observ(() => {
+  if (isDelete) {
+    console.log('delete');
+  }
+});
 
 function createDir(path, callback) {
   fs.exists(path, () => {
@@ -41,7 +52,9 @@ function createDir(path, callback) {
 }
 
 const sortFiles = (src) => {
+  observer.addObserver(src);
   fs.readdir(src, (error, files) => {
+    
     if (error) {
       process.exit(500);
     }
@@ -52,33 +65,44 @@ const sortFiles = (src) => {
 
     for (let index = 0; index < files.length; index++) {
       const currentUrl = path.join(src, files[index]);
+      observer.addObserver(currentUrl);
       fs.stat(currentUrl, (error, state) => {
-        if (error) throw error;
+        // if (error) throw error;
 
         if (state.isDirectory()) {
           sortFiles(currentUrl);
+          observer.removeObserver(currentUrl);
         } else {
-          const pathNewDir = path.join(paths.dist, path.parse(files[index]).name.charAt(0).toUpperCase());
+          console.info(path.parse(path.join(pathNewDir, files[index])));
+          console.log(' ');
+
+          // observer.removeObserver(currentUrl);
+
+          
   
-          createDir(paths.dist, () => {
-            createDir(pathNewDir, () => {
+          // createDir(paths.dist, () => {
+          //   createDir(pathNewDir, () => {
               fs.copyFile(currentUrl, path.join(pathNewDir, files[index]), (error) => {
-                if (error) throw error;
-              });
-            });
-          });          
-          // console.info(path.parse(path.join(pathNewDir, files[index])));
-          // console.log(' ');
-        }
-      });
-        fs.stat(src, (error) => {
-          if (error) throw error;
+                observer.removeObserver(currentUrl);
+              })
+          //       if (error) throw error;
+            //   });
+            // });
+        //   });  
+        // }
+      // });
+        // fs.stat(src, (error) => {
+        //   if (error) throw error;
+        // });
+          }
         });
     }
+    observer.removeObserver(src);
   });
 }
 
 sortFiles(paths.sourse);
+observer.start('start...');
 
 process.on('exit', code => {
   switch (code) {
@@ -87,6 +111,8 @@ process.on('exit', code => {
       break;
     case 404:
       console.error('Directory is clear');
+      break;
+    default:
       break;
   }  
 });
