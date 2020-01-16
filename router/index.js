@@ -1,21 +1,10 @@
-const express = require('express');
-const bodyParser = require('body-parser');
-const flash = require('connect-flash');
-const fileUpload = require('express-fileupload');
-
+const Router = require('koa-router');
 const { registerGETHandlers } = require('./GETHandlers');
 const { registerPOSTHandlers } = require('./POSTHandlers');
 
-const router = express.Router();
-
-// middlewares
-router.use(bodyParser.urlencoded({ extended: false }));
-router.use(bodyParser.json());
-router.use(fileUpload());
-router.use(flash());
+const router = new Router();
 
 registerGETHandlers(router);
 registerPOSTHandlers(router);
 
 module.exports = router;
-

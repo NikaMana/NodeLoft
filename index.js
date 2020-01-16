@@ -1,13 +1,10 @@
-const express = require('express');
-const { applyMiddlewares } = require('./middlewares');
+const Koa = require('koa');
+const { applyMiddlewares } = require('./middleware');
 
-const app = express();
+const app = new Koa();
 
 applyMiddlewares(app);
 
-app.set('views', './template');
-app.set('view engine', 'pug');
-
-app.listen(3000, function () {
-  console.log('Loftschool Node.js HW3 — Express.js app listening on port 3000!');
+app.listen(3000, function() {
+  console.log('Loftschool Node.js HW4 — Koa.js app running on https://localhost:3000')
 });

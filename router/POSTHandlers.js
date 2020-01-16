@@ -1,87 +1,94 @@
 const path = require('path');
+const { PRODUCTS_IMG_PATH } = require('../config');
 const db = require('../db-controller');
-const { PUBLIC_PATH, IMG_UPLOAD_PATH } = require('../config');
 
 db.init();
 
 function registerPOSTHandlers(router) {
-  router.post('/', function (req, res) {
-    const { name, email, message } = req.body;
+  router.post('/', async (ctx, next) => {
+    const { name, email, message } = ctx.request.body;
 
     if (!name || !email) {
-      req.flash('indexStatus', 'Пожалуйста, заполните обязательные поля.');
-      return  res.status(400).redirect('/');
+      ctx.flash('indexStatus', 'Пожалуйста, заполните обязательные поля.');
+
+      ctx.response.status = 400;
+      return  ctx.redirect('/');
     }
 
     db.addFeedback({ name, email, message });
     
-    req.flash('indexStatus', 'Спасибо за Ваш отзыв! :)');
-    return res.status(200).redirect('/');
+    ctx.flash('indexStatus', 'Спасибо за Ваш отзыв! :)');
+    
+    ctx.response.status = 200;
+    return ctx.redirect('/');
   });
 
-  router.post('/login', function (req, res) {
-    const { email, password } = req.body;
+  router.post('/login', async (ctx, next) => {
+    const { email, password } = ctx.request.body;
 
     if (!email || !password) {
-      req.flash('loginStatus', 'Введите все данные пользователя!');
-      return res.status(400).redirect('/login');
+      ctx.flash('loginStatus', 'Введите все данные пользователя!');
+
+      ctx.response.status = 400;
+      return ctx.redirect('/login');
     }
-    
+
     if (!db.checkUser({ email, password })) {
-      req.flash('loginStatus', 'Неверный email и/или пароль');
-      return res.status(400).redirect('/login');
+      ctx.flash('loginStatus', 'Неверный email и/или пароль');
+
+      ctx.response.status = 400;
+      return ctx.redirect('/login');
     }
 
     db.authUser({ email, password });
 
-    req.flash('loginStatus', 'Вы успешно авторизированы!');
-    return res.status(200).redirect('/admin');
+    ctx.flash('loginStatus', 'Вы успешно авторизированы!');
+
+    ctx.response.status = 200;
+    return ctx.redirect('/login');
   });
 
-  router.post('/admin/skills', function (req, res) {
-    const { age, concerts, cities, years } = req.body;
+  router.post('/admin/skills', async (ctx, next) => {
+    const { age, concerts, cities, years } = ctx.request.body;
 
     if (!age || !concerts || !cities || !years) {
-      req.flash('skillsStatus', 'Пожалуйста, заполните все поля.');
-      return res.status(400).redirect('/admin');
+      ctx.flash('skillsStatus', 'Пожалуйста, заполните все поля.');
+
+      ctx.response.status = 400;
+      return ctx.redirect('/admin');
     }
 
     db.updateSkills({ age, concerts, cities, years });
 
-    req.flash('skillsStatus', 'Счётчики обновлены!');
-    return res.status(200).redirect('/admin');
+    ctx.flash('skillsStatus', 'Счётчики обновлены!');
+    ctx.response.status = 200;
+    return ctx.redirect('/admin');
   });
 
-  router.post('/admin/upload', function (req, res) {
-    const { name, price } = req.body;
+  router.post('/admin/upload', async (ctx, next) => {
+    const { name, price } = ctx.request.body;
+    const { photo } = ctx.request.files;
 
-    if (!req.files || !name || !price) {
-      req.flash('uploadStatus', 'Пожалуйста, заполните все поля.');
-      return res.status(400).redirect('/admin');
+    if (!photo || !name || !price) {
+      ctx.flash('uploadStatus', 'Пожалуйста, заполните все поля.');
+
+      ctx.response.status = 400;  
+      return ctx.redirect('/admin');
     }
 
-    const productImage = req.files.photo;
-    const productImageFilename = productImage.name;
+    db.addProduct({ 
+      src: `${PRODUCTS_IMG_PATH}/${path.basename(photo.path)}`,
+      name, 
+      price
+    });
+    
+    ctx.flash('uploadStatus', 'Продукт успешно сохранён!');
 
-    productImage
-      .mv(path.join(PUBLIC_PATH, IMG_UPLOAD_PATH, productImageFilename))
-      .then(() => {
-        db.addProduct({ 
-          src: `${IMG_UPLOAD_PATH}/${productImageFilename}`, 
-          name, 
-          price 
-        });
-        
-        req.flash('uploadStatus', 'Продукт успешно сохранён!');        
-        return res.status(200).redirect('/admin');
-      })
-      .catch(err => {
-        req.flash('uploadStatus', 'Ошибка при загрузке файла!');   
-        return res.status(400).redirect('/admin');
-      });
+    ctx.response.status = 200;
+    return ctx.redirect('/admin');
   });
-}
+};
 
 module.exports = {
-  registerPOSTHandlers: registerPOSTHandlers
-}
+  registerPOSTHandlers
+};

@@ -1,47 +1,47 @@
 const db = require('../db-controller');
 
-function indexRouteHandler(req, res) {
-  const flashStatus = req.flash('indexStatus');
+async function indexGetHandler(ctx, next) {
+  const flashStatus = ctx.flash('indexStatus');
   const products = db.getProducts();
   const skills = db.getSkills();
   const isUserAuth = db.isUserAuth();
 
-  return res.render('./pages/index', {
+  ctx.render('index', {
     products,
     skills,
-    userauth: isUserAuth,
-    msgemail: flashStatus.length ? flashStatus : null
+    userauth: isUserAuth, 
+    msgemail: flashStatus.length ? flashStatus : null 
   });
 }
 
 function registerGETHandlers(router) {
-  router.get('/', indexRouteHandler);
-  router.get('/index', indexRouteHandler);
-
-  router.get('/login', function (req, res) {
-    const flashStatus = req.flash('loginStatus');
+  router.get('/', indexGetHandler);
+  router.get('/index', indexGetHandler);
+  
+  router.get('/login', async (ctx, next) => {
+    const flashStatus = ctx.flash('loginStatus');
     const isUserAuth = db.isUserAuth();
 
     if (isUserAuth) {
-      return res.redirect('/admin');
+      return ctx.redirect('/admin');
     }
 
-    return res.render('./pages/login', {
-      msglogin: flashStatus.length ? flashStatus : null
+    ctx.render('login', { 
+      msglogin: flashStatus.length ? flashStatus : null 
     });
   });
 
-  router.get('/logout', function (req, res) {
+  router.get('/logout', async (ctx, next) => {
     db.logoutUser();
 
-    req.flash('loginStatus', 'Всего хорошего! :)');
-    return res.redirect('/login');
+    ctx.flash('loginStatus', 'Всего хорошего! :)');
+    return ctx.redirect('/login');
   })
-
-  router.get('/admin', function (req, res) {
-    const flashLoginStatus = req.flash('loginStatus');
-    const flashSkillsStatus = req.flash('skillsStatus');
-    const flashUploadStatus = req.flash('uploadStatus');
+  
+  router.get('/admin', async (ctx, next) => {
+    const flashLoginStatus = ctx.flash('loginStatus');
+    const flashSkillsStatus = ctx.flash('skillsStatus');
+    const flashUploadStatus = ctx.flash('uploadStatus');
     const isUserAuth = db.isUserAuth();
 
     const skills = db.getSkills();
@@ -49,15 +49,11 @@ function registerGETHandlers(router) {
     console.log('skills', skills);
 
     if (!isUserAuth) {
-      req.flash('loginStatus', 'Пожалуйста, авторизируйтесь!');
-      return res.redirect('/login');
+      ctx.flash('loginStatus', 'Пожалуйста, авторизируйтесь!');
+      return ctx.redirect('/login');
     }
 
-    return res.render('./pages/admin', {
-      a: 12,
-      b: 76,
-      c: 30,
-      d: 20,
+    ctx.render('admin', { 
       skills,
       msgauth: flashLoginStatus.length ? flashLoginStatus : null,
       msgskill: flashSkillsStatus.length ? flashSkillsStatus : null,
@@ -67,5 +63,5 @@ function registerGETHandlers(router) {
 }
 
 module.exports = {
-  registerGETHandlers: registerGETHandlers
+  registerGETHandlers
 }
