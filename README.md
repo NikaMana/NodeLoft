@@ -1,2 +1,1 @@
-# NodeLoft
-Курс по Node.js
+Сигма
